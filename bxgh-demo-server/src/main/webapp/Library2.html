@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <!-- 必须的 meta 标签 -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap 的 CSS 文件 -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" >
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+ 
+
+    <div id="app">
+
+       <table class="table">
+         <thead>
+           <tr>
+             <th>borrowid</th>
+             <th>书籍号</th>
+             <th>借阅者id</th>
+             <th>借阅时间</th>
+             <th>应还时间</th>
+             <th>实际归还时间</th>
+                          
+           </tr>
+         </thead>
+         <tbody>
+           <tr v-for="item in libList" :key="item.borrow_id">
+            <td>{{item.borrow_id}}</td>
+            <td>{{item.b_ISBN}}</td>
+            <td>{{item.c_id}}</td>
+            <td>{{item.borrow_time}}</td>
+            <td>{{item.return_time}}</td>
+             <td>{{item.actual_return_time}}</td>
+           </tr>
+         </tbody>
+       </table>
+
+
+    </div>
+
+    
+    <script src="js/jquery-3.6.0.slim.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/vue.global.js"></script>
+    <script src="js/axios.min.js"></script>
+    <script src="js/my-axios.js"></script>
+    <script src="layer/layer.js"></script>
+
+    <script>
+
+
+         const eduMap = {
+
+        };
+
+        //定义vue应用配置
+        const app = {
+            //data函数专门用来定义数据
+            data(){
+                return {
+                  eduMap, //此写法 等同 eduMap ：eduMap
+                  libList:[],
+                  
+                };
+            },
+
+            //定义方法
+            methods:{
+                
+            },
+
+            //定义回调方法：mounted 该方法在页面渲染完成立即执行
+            mounted(){
+              //向服务端接口http://localhost:8080/jd_demo_server_war_exploded/lib/libList，发出get请求
+              const loadIdx = layer.load();              
+              myAxios.get('/lib/libList').then((response)=>{
+                layer.close(loadIdx);                 
+                this.libList = response.data.data;
+              });
+            }
+        };
+
+        Vue.createApp(app).mount('#app')
+
+    </script>
+    
+
+   
+  </body>
+</html>

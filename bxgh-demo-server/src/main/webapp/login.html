@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <!-- 必须的 meta 标签 -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap 的 CSS 文件 -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" >
+
+
+    <title>Login Page</title>
+
+    <style>
+        html{
+            height: 100%;
+        }
+
+        body{
+            height: 100%;
+        }
+
+
+        #app{
+            width: 100%;
+            height: 100%;
+
+            min-width: 900px;
+            min-height: 500px;
+
+            overflow: auto;/*产生滚动条*/
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lead{
+            width: 100%;
+            height: 15%;
+
+            box-shadow: rgba(0, 0, 0, 0.5) 0px 1px 3px;
+        }
+
+        .style{
+            width: 500px;
+            height: 500px;
+            box-shadow: rgba(0, 0, 0, 0.87) 2px 2px 5px;
+            border-radius: 250px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .style1{
+            width: 600px;
+            height: 600px;
+            box-shadow: rgba(0, 0, 0, 0.87) 2px 2px 5px;
+            border-radius: 300px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div class="style">
+        <form>
+            <div style="font-size: 25px;margin-bottom: 20px;margin-left:30px ;">
+                图书管理系统
+            </div>
+            <div class="form-group">
+                <label for="u_id">账号</label>
+                <input type="text" class="form-control" id="u_id" v-model="user.u_id" >
+                <a href="loginByEmail.html" target="_blank" style="margin-top: 15px;">忘记账号？使用邮箱登录</a>
+
+            </div>
+            <div class="form-group">
+                <label for="u_pwd">密码</label>
+                <input type="password" class="form-control" id="u_pwd" v-model="user.u_pwd">
+                <input type="checkbox" class="form-check-input" id="exampleCheck1" style="margin-left: auto;margin-top: 15px;"@click="change">
+                <label class="form-check-label" for="exampleCheck1" style="margin-left: 25px;margin-top: 9px;">点击显示密码</label>
+            </div>
+            <button type="button" class="btn btn-primary" @click="login">登录</button>
+            <button type="button" class="btn btn-primary" style="margin-left: 80px;"  @click="jump">注册</button>
+        </form>
+    </div>
+
+
+
+</div>
+
+
+
+
+
+
+<script src="js/jquery-3.6.0.slim.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/vue.global.js"></script>
+<script src="js/axios.min.js"></script>
+<script src="js/my-axios.js"></script>
+<script src="layer/layer.js"></script>
+<script src="http://pv.sohu.com/cityjson?ie=utf-8"></script>
+<script src="//unpkg.com/layui@2.6.7/dist/layui.js"></script>
+
+
+<script>
+
+
+    const app={
+        data(){
+            return{
+                user:{
+                    u_id:'',
+                    u_pwd:'',
+                },
+                loadIdx:null,
+
+            }
+        },
+
+        methods:{
+            login(){
+                this.loadIdx = layer.load();
+                myAxios.post('/login',this.user)
+                    .then(res=>{
+                        layer.close(this.loadIdx);
+                        if(res.data.success){
+                            layer.msg('登陆成功', {icon: 1} ,()=>{
+                                window.location.href='home.html';
+                            });
+                        }else{
+                            layer.alert(res.data.message, {icon: 2});
+                        }
+                    })
+                    .catch(err=>{
+                        layer.close(this.loadIdx);
+                        layer.msg('系统错误！', {icon: 2});
+
+                    });
+            },
+
+            change(){
+                if(u_pwd.type=='password'){
+                    u_pwd.setAttribute('type','text');
+                }else{
+                    u_pwd.setAttribute('type','password');
+                }
+            },
+
+            jump(){
+                window.location.href='register.html';
+            }
+        },
+
+        mounted(){
+
+        }
+
+
+    };
+
+    Vue.createApp(app).mount('#app')
+
+
+
+
+
+
+
+</script>
+
+
+</body>
+</html>

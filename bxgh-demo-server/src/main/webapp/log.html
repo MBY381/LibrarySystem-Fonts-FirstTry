@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <style>
+        #currentAdmin {
+            position: absolute;
+            /*相对于父元素定位*/
+            right: 20px;
+            top: 5px;
+
+            display: flex;
+            flex-direction: row;
+            /*主轴为水平方向*/
+            align-items: center;
+            /*交叉轴居中对齐*/
+        }
+
+        .head {
+            height: 30px;
+            position: relative;
+        }
+    </style>
+    <!-- 必须的 meta 标签 -->
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+
+    <!-- Bootstrap 的 CSS 文件 -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <title>Hello, world!</title>
+</head>
+<body>
+<div id="head">
+    <i @click="switchNavWidth" class="fa fa-bars fa-2x"
+       style="color:#CCCCCC;margin:12px 0px 0px 10px;cursor: pointer;"></i>
+
+
+</div>
+<div  id="BookList" style="margin: 20px;">
+    <div style="display: flex;/* 定义本元素（#app）是一个flex（柔性布局/灵活布局）盒子  */
+        flex-direction: row;/*内部元素按行排列*/
+        justify-content: left;/*主轴居中*/">
+        <input placeholder="请输入待查询的图书 书名/作者/译者" style="width: 300px;" v-model="query.search_id">
+        <button @click="find_by_data" class="btn btn-info " style="border-radius: 10%;">确认</button>
+        <button @click="open_add_window" class="btn btn-primary"
+                style="margin-right: 20px;margin-left: 30px;">新增图书信息
+        </button>
+        <!--<button @click="reload_book" style="margin-right: 20px;margin-left: 30px;">信息</button>-->
+    </div>
+
+        <div :key="item.b_ISBN" v-for="item in page.list" style="width: 400px;height: 200px; display: flex;/* 定义本元素（#app）是一个flex（柔性布局/灵活布局）盒子  */
+                                     flex-direction: row;
+                                     justify-content: left;/*主轴居中*/
+                                     border:solid black 2px; margin:20px;">
+            <div style="width: 200px;height: 100%; background: #0f6674">
+            </div>
+            <div style="display: flex;
+                 flex-direction: column;
+                 justify-content: left;
+                 border:solid black 1px;
+                 text-align: center;
+                 width: 100% ;height: 100%">
+                <div style="border:solid black 1px; width: 100%;height: 30px;">
+                    {{item.b_name}} {{item.b_author}}  {{item.b_ISBN}}!!
+                    <button @click="borrow(item)" class="btn btn-default">借书</button>
+                </div>
+                <div style="border:solid black 1px; width: 100%;height: 20px;">
+                    {{item.b_stock}}{{item.b_translator}}??
+                </div>
+                <div style="border:solid black 1px; width: 100%;height: 100%;">
+                    {{item.b_introduce}}
+                </div>
+            </div>
+
+        </div>
+
+    <nav>
+        <ul class="pagination" style="display: flex;align-items: center;">
+            <li class="page-item"><a @click.prevent="goPage(1)" class="page-link" href="#">首页</a></li>
+            <li class="page-item"><a @click.prevent="goPage(page.pre)" class="page-link" href="#">上一页</a>
+            </li>
+            <li class="page-item"><a @click.prevent="goPage(page.next)" class="page-link" href="#">下一页</a>
+            </li>
+            <li class="page-item"><a @click.prevent="goPage(page.last)" class="page-link" href="#">尾页</a>
+            </li>
+            <li class="page-item">
+                当前第<input @blur="goPage(query.pageNum)" style="border:1px solid #eeeeee; width:30px;text-align: center"
+                          type="text" v-model="query.pageNum"/>页{{page.size}}条记录，共{{page.pages}}页{{page.total}}条记录,
+            </li>
+        </ul>
+    </nav>
+    <div id="modify_book_win" style="display: none;padding: 15px;">
+        <form>
+            <div class="form-group">
+                <label>书名</label>
+                <input class="form-control" type="text" v-model="tempData.b_name">
+            </div>
+            <div class="form-group">
+                <label>ISBN号</label>
+                <input class="form-control" type="text" v-model="tempData.b_ISBN">
+            </div>
+            <div class="form-group">
+                <label>作者</label>
+                <input class="form-control" type="text" v-model="tempData.b_author">
+            </div>
+            <div class="form-group">
+                <label>译者</label>
+                <input class="form-control" type="text" v-model="tempData.b_translator">
+            </div>
+            <div class="form-group">
+                <label >图书简介</label>
+                <textarea v-model="tempData.b_introduce" rows="3"></textarea>
+            </div>
+            <button @click="submit_item(tempData)" class="btn btn-primary" type="submit">提交</button>
+        </form>
+    </div>
+</div>
+
+
+
+<script src="js/jquery-3.6.0.slim.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/vue.global.js"></script>
+<script src="js/axios.min.js"></script>
+<script src="js/my-axios.js"></script>
+<script src="layer/layer.js"></script>
+<script>
+    //类似json，定义对象
+    //定义vue应用配置
+    const currentAdmin = {
+        data() {
+            return {
+                currentUser: {},
+            };
+        },
+    }
+    const LogList = {
+        //"data（）方法是数据定义阶段的一个声明"
+        data() {
+            return {
+                win_index: '',
+                page: {},
+                displayList: [],
+                voidData: {
+                    c_id: '',
+                    c_name: '',
+                    borrow_num: '',
+                    c_email: '',
+                    c_key: '',
+                },
+                query: {
+                    search_id: "",
+                    pageNum: 1,
+                    pageSize: 6,
+                },
+                tempData: {
+                    c_id: '',
+                    c_name: '',
+                    borrow_num: '',
+                    c_email: '',
+                    c_key: '',
+                },
+                window_mode: '',
+            };
+        },
+        filters: {
+            filter(data) {
+                return data;
+            }
+        },
+        methods: {
+            find_by_data() {
+                axios.get('http://localhost:8888/jd_demo_server_war_exploded/log/LogList', {params: this.query}).then((response) => {
+                    this.page = response.data.data;
+                    //console.log(response);
+                    this.query.pageNum = this.page.current;
+                    this.query.pageSize = this.page.pageSize;
+                });
+            },
+            goPage(pageNum, pageSize) {
+                if (pageNum) {
+                    this.query.pageNum = pageNum;
+                    if (pageSize) {
+                        this.query.pageSize = pageSize;
+                    }
+                } else {
+                    this.query.pageNum = 1;
+                }
+                this.find_by_data();
+            },
+
+            open_modify_window(item) {
+                this.window_mode = 1,
+                    this.tempData = {...item},
+                    this.win_index = layer.open({
+                        type: 1,
+                        title: "修改读者信息",
+                        area: ['800px', '600px'],
+                        content: $('#modify_log_win')
+                    })
+            },
+            open_add_window() {
+                this.window_mode = 2,
+                    this.tempData = {...this.voidData},
+                    console.log(this.tempData),
+                    console.log("?!???"),
+                    this.win_index = layer.open({
+                        type: 1,
+                        title: "新增读者信息",
+                        area: ['800px', '600px'],
+                        content: $('#modify_log_win')
+                    })
+            },
+            modify(data) {
+                console.log(data),
+                    myAxios.post('/log/LogList', data);
+            },
+            reload() {
+                var index = layer.load();
+                console.log("reloading!");
+                axios.get('http://localhost:8888/jd_demo_server_war_exploded/log/LogList').then((response) => {
+                    layer.close(index);
+                    this.page = response.data.data;
+                    console.log("finish reload!!");
+                });
+            },
+            delete_item(item) {
+                console.log("delete!");
+                const Idx = layer.load();
+                myAxios.post('/log/LogList/delete', item).then(res => {
+                    layer.close(Idx);
+                    layer.msg("删除成功！", {icon: 1})
+                }).catch(err => {
+                    layer.close(Idx);
+                    layer.msg("删除失败！", {icon: 2})
+                });
+                this.reload();
+            },
+            submit_item(item) {
+                if (this.window_mode == 1) {
+                    const Idx = layer.load();
+                    console.log("updating!");
+                    myAxios.post('/log/LogList', item).then(res => {
+                        layer.close(Idx);
+                        this.goPage(this.page.current);
+                        layer.msg("修改成功！", {icon: 1})
+                    }).catch(err => {
+                        layer.close(Idx);
+                        layer.msg("系统错误！", {icon: 2})
+                    });
+                } else if (this.window_mode == 2) {
+                    const Idx = layer.load();
+                    console.log("inserting!");
+                    myAxios.post('/log/LogList/insert', item).then(res => {
+                        layer.close(Idx);
+                        layer.msg("插入成功！", {icon: 1})
+                        console.log("inserted!");
+                        this.goPage(this.page.last + 1);
+                    }).catch(err => {
+                        layer.close(Idx);
+                        layer.msg("系统错误！", {icon: 2})
+                    });
+                }
+                this.find_by_data();
+                console.log("item!");
+                console.log(item);
+                console.log("close window!!");
+                console.log(this.win_index);
+                console.log(window.index);
+                layer.close(this.win_index);
+            },
+
+        },
+
+        //定义回调方法mounted,页面渲染完成立即执行
+        mounted() {
+            var index = layer.load();
+            axios.get('http://localhost:8888/jd_demo_server_war_exploded/log/LogList').then((response) => {
+                layer.close(index);
+                this.page = response.data.data;
+            });
+        }
+    }
+    const BookList = {
+
+        //"data（）方法是数据定义阶段的一个声明"
+        data() {
+            return {
+                win_index: '',
+                bookList: [],//定义一个名称为info的数据
+                user:{
+                    isbn:'',
+                    b_name:'',
+                    c_id:'',
+                },
+                tempData: {
+                    b_name: '',
+                    b_ISBN: '',
+                    b_author: '',
+                    b_translator: '',
+                    b_introduce: '',
+                    b_location: '',
+                    b_total: '',
+                    b_stock: '',
+                },
+                window_mode: '',
+                page: {},
+                query: {
+                    search_id: "",
+                    pageNum: 1,
+                    pageSize: 6,
+                },
+            };
+        },
+        filters: {
+            filter(data) {
+                return data;
+            }
+        },
+        methods: {
+            find_by_data() {
+                axios.get('http://localhost:8888/jd_demo_server_war_exploded/book/BookList', {params: this.query}).then((response) => {
+                    this.page = response.data.data;
+                    console.log(response);
+                });
+            },
+            goPage(pageNum, pageSize) {
+                if (pageNum) {
+                    this.query.pageNum = pageNum;
+                    if (pageSize) {
+                        this.query.pageSize = pageSize;
+                    }
+                } else {
+                    this.query.pageNum = 1;
+                }
+                this.find_by_data();
+            },
+            open_modify_window(item) {
+                this.window_mode = 1,
+                    console.log(item),
+                    console.log(item.b_name),
+                    this.tempData = {...item},
+                    this.win_index = layer.open({
+                        type: 1,
+                        title: "修改图书信息",
+                        area: ['800px', '600px'],
+                        content: $('#modify_book_win')
+                    })
+            },
+            open_add_window(item) {
+                this.window_mode = 2,
+                    console.log(item),
+                    console.log(item.b_name),
+                    this.tempData = {...item},
+                    this.win_index = layer.open({
+                        type: 1,
+                        title: "新增图书信息",
+                        area: ['800px', '600px'],
+                        content: $('#modify_book_win')
+                    })
+            },
+            reload_book() {
+                const index = layer.load();
+                console.log("reloading!");
+                myAxios.get('/book/BookList').then((response) => {
+                    layer.close(index);
+                    this.bookList = response.data.data;
+                    this.find_by_data();
+                    console.log(this.displayList);
+                    console.log("finish reload!!");
+                }).catch(err => {
+                    layer.msg("刷新异常！")
+                });
+
+            },
+            delete_item(item) {
+                console.log("delete!");
+                const Idx = layer.load();
+                myAxios.post('/book/BookList/delete', item).then(res => {
+                    layer.close(Idx);
+                    layer.msg("删除成功！", {icon: 1});
+                    this.goPage(this.page.current);
+                }).catch(err => {
+                    layer.close(Idx);
+                    layer.msg("删除失败！", {icon: 2})
+                });
+                this.reload();
+            },
+            submit_item(item) {
+                if (this.window_mode == 1) {
+                    const Idx = layer.load();
+                    console.log("updating!");
+                    myAxios.post('/book/BookList', item).then(res => {
+                        layer.close(Idx);
+                        this.goPage(this.page.current);
+                        layer.msg("修改成功！", {icon: 1})
+                    }).catch(err => {
+                        layer.close(Idx);
+                        layer.msg("系统错误！", {icon: 2})
+                    });
+                } else if (this.window_mode == 2) {
+                    const Idx = layer.load();
+                    console.log("inserting!");
+                    myAxios.post('/book/BookList/insert', item).then(res => {
+                        layer.close(Idx);
+                        layer.msg("插入成功！", {icon: 1})
+                        console.log("inserted!");
+                        this.goPage(this.page.last + 1);
+                    }).catch(err => {
+                        layer.close(Idx);
+                        layer.msg("系统错误！", {icon: 2})
+                    });
+                }
+                this.find_by_data();
+                console.log("item!");
+                console.log(item);
+                console.log("close window!!");
+                console.log(this.win_index);
+                console.log(window.index);
+                layer.close(this.win_index);
+            },
+            borrow(item){
+
+                //将登录数据发送至服务器
+                this.user.b_name=item.b_name;
+                this.user.isbn=item.b_ISBN;
+                this.user.c_id='1';
+                this.loadIdx = layer.load();
+                myAxios.post('/bo',this.user)
+                    .then(res=>{
+                        layer.close(this.loadIdx);
+                        if(res.data.success){
+                            layer.msg('借书成功!', {icon: 1},()=>{
+                                window.location.href = 'Library.html';
+                            });
+                        }else{
+                            layer.msg('借书失败,请检查学号和书名', {icon: 2});
+                        }
+                    })
+                    .catch(err=>{
+                        layer.close(this.loadIdx);
+                        layer.msg('系统错误！', {icon: 2});
+                    });
+            }
+        },
+
+        //定义回调方法mounted,页面渲染完成立即执行
+        mounted() {
+            var index = layer.load();
+            axios.get('http://localhost:8888/jd_demo_server_war_exploded/book/BookList').then((response) => {
+                console.log("mount!");
+                layer.close(index);
+                this.page = response.data.data
+                console.log(response);
+            });
+        }
+    }
+
+    //#app指的是绑定id为app的div
+    Vue.createApp(BookList).mount("#BookList");
+    Vue.createApp(LogList).mount("#LogList");
+    Vue.createApp(currentAdmin).mount("#currentAdmin");
+
+</script>
+</body>
+
+</html>

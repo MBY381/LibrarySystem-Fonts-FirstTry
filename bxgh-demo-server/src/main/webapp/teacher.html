@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <!-- 必须的 meta 标签 -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap 的 CSS 文件 -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" >
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+
+
+    <div id="app">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>教工号</th>
+                    <th>姓名</th>
+                    <th>性别</th>
+                    <th>学历</th>
+                    <th>职务</th>
+                    <th>出生日期</th>
+                    <th>备注</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="item in teaList" :key="item.t_id">
+                    <td>{{item.t_id}}</td>
+                    <td>{{item.t_name}}</td>
+                    <td>{{item.t_sex}}</td>
+                    <td>{{item.t_edu}}</td>
+                    <td>{{item.t_title}}</td>
+                    <td>{{item.t_birth}}</td>
+                    <td>{{item.t_status}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="js/jquery-3.6.0.slim.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/vue.global.js"></script>
+    <script src="js/axios.min.js"></script>
+    <script src="layer/layer.js"></script>
+    <script>
+        //类似json，定义对象
+        //定义vue应用配置
+        const app = {
+            //"data（）方法是数据定义阶段的一个声明"
+             data()
+             {
+                return {
+                     teaList:[],//定义一个名称为info的数据
+                 };
+             },
+
+             methods:{
+             },
+             //定义回调方法mounted,页面渲染完成立即执行
+            mounted(){
+             //向服务端接口http://localhost:8888/jd_demo_server_war_exploded/tea/teaList发出请求
+             axios.get('http://localhost:8888/jd_demo_server_war_exploded/tea/teaList').then((response)=>{
+                 this.teaList=response.data.data
+                 //console.log(response);
+             });
+            }
+        }
+        //#app指的是绑定id为app的div
+        Vue.createApp(app).mount("#app");
+    </script>
+  </body>
+</html>

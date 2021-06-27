@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/layui.css"/>
+
+    <title>验证账户</title>
+    <style>
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
+        }
+
+        #app {
+            width: 100%;
+            height: 100%;
+
+            min-width: 900px;
+            min-height: 500px;
+
+
+            display: flex; /* 定义本元素（#app）是一个flex（柔性布局/灵活布局）盒子  */
+            flex-direction: row; /*内部元素按行排列*/
+            justify-content: center; /*主轴居中*/
+            align-items: center; /*交叉轴居中*/
+
+        }
+
+        form {
+            width: 20%;
+            box-shadow: rgb(0, 0, 0.1) 0 8px 8px;
+            padding: 30px 50px;
+            border-radius: 8px;
+        }
+
+
+    </style>
+
+</head>
+<body>
+<div id="app">
+    <form>
+        <div style="font-size:25px;text-align: center; margin-bottom: 20px;font-family: '微软雅黑 Light',serif;font-weight: bold;">
+            图书管理系统
+        </div>
+        <div class="form-group">
+            <label for="user.email">邮箱账号</label>
+            <input type="text" class="form-control" id="user.email" v-model="user.c_email">
+        </div>
+        <div class="form-group">
+            <label for="user.emailcode">验证码</label>
+            <input type="text" class="form-control" id="user.emailcode" v-model="user.emailcode">
+            <br>
+            <button id="btn" type="button" class="btn btn-primary" @click="sendcode">发送验证码</button>
+        </div>
+
+        <button type="button" class="btn badge-success" @click="verifycode">确认</button>
+
+    </form>
+
+</div>
+
+
+<script src="js/jquery-3.6.0.slim.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/vue.global.js"></script>
+<script src="js/axios.min.js"></script>
+<script src="js/my-axios.js"></script>
+<script src="layer/layer.js"></script>
+<script src="js/time.set.js"></script>
+
+<script>
+
+    //定义vue应用配置
+    const app = {
+        //data函数专门用来定义数据
+        data() {
+            return {
+
+                //定义登录数据
+                user: {
+                    c_email: '',
+                    emailcode: ''
+                },
+                loadIdx: null,
+
+            };
+        },
+
+        //定义方法
+        methods: {
+            //登录
+            sendcode() {
+                //发送验证码
+                this.loadIdx = layer.load();
+                myAxios.post('/sendcode', this.user)
+                    .then(res => {
+                        layer.close(this.loadIdx);
+                        if (res.data.success) {
+                            layer.msg('发送成功！请注意查收', {icon: 1});
+                            time(document.getElementById("btn"));
+                        } else {
+                            layer.msg(res.data.message, {icon: 2});
+                        }
+                    })
+                    .catch(err => {
+                        layer.close(this.loadIdx);
+                        layer.msg('系统错误！', {icon: 2});
+                    });
+            },
+            verifycode() {
+                this.loadIdx = layer.load();
+                myAxios.post('/verifycode', this.user)
+                    .then(res => {
+                        layer.close(this.loadIdx);
+                        if (res.data.success) {
+                            layer.msg('验证成功', {icon: 1}, () => {
+                                window.location.href = 'updatepwd.html';
+                            });
+                        } else {
+                            layer.msg('验证码错误，请重试', {icon: 2});
+                        }
+                    })
+                    .catch(err => {
+                        layer.close(this.loadIdx);
+                        layer.msg('系统错误！', {icon: 2});
+                    });
+
+            }
+        },
+
+        //定义回调方法：mounted 该方法在页面渲染完成立即执行
+    }
+
+    Vue.createApp(app).mount('#app')
+
+</script>
+</body>
+</html>

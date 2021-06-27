@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="zh-CN">  <!--语言设置-->
+<head>
+    <!-- 必须的 meta 标签 -->
+    <meta charset="utf-8">   <!--字符设置-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap 的 CSS 文件 -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+
+    <title>Hello, world!</title>
+
+    <style>
+        html{
+            height:100%;
+        }
+        body{
+            height:100%;
+        }
+        #app{
+            width:100%;
+            height:100%;
+
+            min-width: 900px;
+            min-height: 500px;
+            overflow: auto;/*超出范围自动产生滚动条*/
+
+            display :flex;/*定义本元素(#app)是一个flex（柔性布局/灵活布局）盒子 */
+            flex-direction: row; /*内部元素按行排列*/
+        }
+
+        .nav{
+            height: 100%;
+            width: 180px;
+            box-shadow:rgba(0,0,0,1/*透明度*/)1px/*从左边向右延伸一个像素*/0px 2px/*阴影*/;
+        }
+
+        .main{
+            height: 100%;
+            flex:auto;/*本元素作为flex容器中的元素，以自动扩展占位*/
+        }
+
+        .title{
+            width: 100%;
+            height: 50px;
+            box-shadow: rgba(0,0,0,0.1)0px 1px 1px;
+
+            position: relative;/*这样设置，将作为子元素的定位基准*/
+        }
+
+        .curruser{
+            position: absolute;/*相对于父元素定位*/
+            right:20px;     /*指定具体的位置*/
+            bottom:5px;
+
+            display: flex;
+            flex-direction:row;/*主轴为李水平方向*/
+            align-items: center;/*交叉轴居中*/
+        }
+        .content{
+            width: 100%;
+            height: 100%;
+            flex:auto;
+        }
+
+        .bottom{
+            width: 100%;
+            height:30px;
+            box-shadow: rgba(0,0,0,0.1)0px 1px 1px;
+        }
+    </style>
+</head>
+<body>
+<div id = "app" >
+
+    <div class="nav">
+        <div>
+            <!--
+            <img src="image/gameforpeace.png" style="width:180px;"/>
+            -->
+        </div>
+        <!--导航菜单-->
+        <div class="accordion" id="accordionExample" style="width: 100%">
+            <div class="card" style="width: 100%">
+                <div class="card-header" style="width: 100%" id="headingOne">
+                    <h2 class="mb-0" style="width: 100%">
+                        <a href="bookList.html" target="contentFrame" class="btn btn-link btn-block text-left" style="border:none;" >
+                            图书信息管理
+                        </a>
+                    </h2>
+
+                </div>
+                <div class="card-header" style="width: 100%" id="headingTwo">
+                    <h2 class="mb-0" style="width: 100%">
+                        <a href="customerList.html" target="contentFrame" class="btn btn-link btn-block text-left" style="border:none;" >
+                            用户信息管理
+                        </a>
+                    </h2>
+
+                </div>
+                <div class="card-header" style="width: 100%" id="headingThree">
+                    <h2 class="mb-0" style="width: 100%">
+                        <a href="customerList.html" target="contentFrame" class="btn btn-link btn-block text-left" style="border:none;" >
+                            借书信息管理
+                        </a>
+                    </h2>
+
+                </div>
+                <div class="card-header" style="width: 100%" id="headingFour">
+                    <h2 class="mb-0" style="width: 100%">
+                        <a href="history.html" target="contentFrame" class="btn btn-link btn-block text-left" style="border:none;" >
+                            历史借书记录
+                        </a>
+                    </h2>
+
+                </div>
+                <div class="card-header" style="width: 100%" id="headingFive">
+                    <h2 class="mb-0" style="width: 100%">
+                        <a href="customerList.html" target="contentFrame" class="btn btn-link btn-block text-left" style="border:none;" >
+                            日志管理
+                        </a>
+                    </h2>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="main">
+        <div class="title">
+
+            <!--这里开始做用户头像的设置-->
+            <div class="curruser">
+                <img v-if="currentUser.avatar" :src="'http://localhost:8888/jd_demo_server_war_exploded/avatar?filename='+currentUser.avatar" style="height: 40px;border-radius: 50%;" @click="openUploadWin"/>
+                <span v-else style="color:red;cursor:pointer;"@click="openUploadWin">上传头像</span>
+                <div class="dropdown"style="margin-left: 20px;">
+                    <div class="dropdown-toggle" data-toggle="dropdown">
+                        {{currentUser.userName}}({{currentUser.userId}})
+                    </div>
+                    <div class="dropdown-menu" style="margin-top: 15px;">
+                        <a class="dropdown-item" href="#">个人信息</a>
+                        <a class="dropdown-item" href="#">密码修改</a>
+                        <a class="dropdown-item" href="#">退出系统</a>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <div class="content"><iframe name="contentFrame" style="width:100%;height:100%;border:none;margin-left: 10px;"></iframe></div>
+        <div class="bottom"></div>
+    </div>
+
+    <div id="upload-avatar" style="display: none;padding: 10px;">
+        <div @click="chooseAvatar">
+
+            <div v-if="currentFile" style="width:300px;height: 300px;display: flex;flex-direction:column;align-items: center;justify-content: center;">
+                <img :src="currentImgUrl" style="max-width: 100%;max-height: 100%;"/>
+            </div>
+            <div v-else style="width:300px;height: 300px;display: flex;flex-direction:column;align-items: center;justify-content: center;border:1px dashed #AAAAAA;">
+                <i class="fa fa-plus fa-4x" style="color: #AAAAAA;"></i>
+                <div style="font-size: 26px;">上传头像</div>
+
+            </div>
+        </div>
+        <button :disabled="currentFile==null" class="btn btn-primary btn-lg" style="width:100%;margin-top:10px;"@click="uploadAvatar">上传头像</button>
+    </div>
+    <input v-show="false" type="file" ref="fileInput" @change="handleFile"/>
+
+</div>
+
+<script src="js/jquery-3.6.0.slim.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/vue.global.js"></script>
+<script src="js/axios.min.js"></script>
+<script src="js/my-axios.js"></script>
+<script src="layer/layer.js"></script>
+
+<script>
+
+
+    //定义vue应用配置
+    const app = {
+        //data用来定义数据
+        data(){
+            return{
+                navWidth:180,
+
+                currentUser:{},
+
+                currentFile:null,
+                currentImgUrl:null,
+            };
+        },
+
+        //定义方法
+        methods:{
+            switchNavWidth(){
+                this.navWidth = this.navWidth==180?0:180;
+            },
+
+            getCurrentUser(){
+                myAxios.get('/current-user').then(res=>{
+                    this.currentUser=res.data.data;
+                    console.log("当前用户：",res.data);
+                    console.log("当前用户：",this.currentUser);
+                });
+            },
+
+            //打开上传的弹窗
+            openUploadWin(){
+                layer.open({
+                    type:1,
+                    title:false,
+                    content:$('#upload-avatar')
+                });
+            },
+
+            //选择头像
+            chooseAvatar(){
+                this.$refs.fileInput.click();
+            },
+
+            //选择图片后处理图片文件
+            handleFile(){
+                this.currentFile = this.$refs.fileInput.files[0];
+
+                let fileReader = new FileReader();
+                fileReader.onload = ()=>{
+                    this.currentImgUrl = fileReader.result;
+                };
+                fileReader.readAsDataURL(this.currentFile);
+            },
+
+            uploadAvatar(){
+                let idx = layer.load();
+
+                let formData = new FormData();
+                formData.append("avatar",this.currentFile);
+
+                myAxios.post("/avatar",formData).then(res=>{
+                    layer.close(idx);
+                    if(res.data.success){
+                        this.getCurrentUser();
+                        layer.msg('上传成功!',{icon:1});
+                        this.currentFile = null;
+                        this.currentImgUrl = null;
+                    }else {
+                        layer.msg(res.data.message,{icon:2});
+                    }
+                }).catch(err=>{
+                    layer.close(idx);
+                })
+            }
+
+
+
+
+
+        },
+        //定义回调方法：mounted，该方法在页面渲染完成立即执行
+        mounted(){
+
+            this.getCurrentUser();
+        }
+    };
+    Vue.createApp(app).mount('#app')
+</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <!-- 必须的 meta 标签 -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap 的 CSS 文件 -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" >
+
+    <title>Hello, world!</title>
+    <style>
+
+      html{
+        height:100%;
+      }
+      body{
+        height:100%;
+      }
+
+      #app{
+        width:100%;
+        height:100%;
+
+        min-width: 900px;
+        min-height:500px;
+
+       
+        
+        display: flex;/* 定义本元素（#app）是一个flex（柔性布局/灵活布局）盒子  */
+        flex-direction: row;/*内部元素按行排列*/
+        justify-content: center;/*主轴居中*/
+        align-items: center;/*交叉轴居中*/
+
+      }
+
+      form{
+        width:40%;
+        box-shadow: rgb(0,0,0,0.1) 0px 15px 30px;
+        padding:30px 50px;
+        border-radius: 8px;
+      }
+
+
+
+
+    </style>
+  </head>
+  <body>
+ 
+
+    <div id="app">
+      <form>
+        <div style="font-size:50px;text-align: center; margin-bottom: 20px;font-family: 楷体;font-weight: bold;">
+          借书界面
+        </div>
+        <div class="form-group">
+          <label for="borrow_id">书号ISBN</label>
+          <input type="text" class="form-control" id="borrow_id" v-model="user.isbn" >
+        </div>
+        <div class="form-group">
+          <label for="b_name">书名</label>
+          <input type="text" class="form-control" id="b_name" v-model="user.b_name" >
+        </div>
+        <div class="form-group">
+          <label for="c_id">学生学号</label>
+          <input type="text" class="form-control" id="c_id" v-model="user.c_id" >
+        </div>
+        
+        <button type="button" class="btn btn-primary" @click="borrow" >借书</button>
+      </form>
+
+    </div>
+
+    
+    <script src="js/jquery-3.6.0.slim.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/vue.global.js"></script>
+    <script src="js/axios.min.js"></script>
+    <script src="js/my-axios.js"></script>
+    <script src="layer/layer.js"></script>
+
+    <script>
+
+
+        //定义vue应用配置
+        const app = {
+            //data函数专门用来定义数据
+            data(){
+                return {
+                  
+                  //定义登录数据
+                  user:{
+                    isbn:'',
+                    b_name:'',
+                    c_id:'',
+                  },
+
+                  loadIdx:null,
+                  
+                };
+            },
+
+            //定义方法
+            methods:{
+              //登录
+              borrow(){
+                
+                //将登录数据发送至服务器
+                this.loadIdx = layer.load();
+                myAxios.post('/bo',this.user)
+                       .then(res=>{
+                         layer.close(this.loadIdx);
+                          if(res.data.success){
+                            layer.msg('借书成功!', {icon: 1},()=>{
+                              window.location.href = 'Library.html';
+                            });                             
+                          }else{
+                            layer.msg('借书失败,请检查学号和书名', {icon: 2});
+                          }
+                       })
+                       .catch(err=>{
+                        layer.close(this.loadIdx);
+                        layer.msg('系统错误！', {icon: 2});
+                       });
+              }
+            },
+
+            //定义回调方法：mounted 该方法在页面渲染完成立即执行
+            mounted(){
+              
+            },
+        };
+
+        Vue.createApp(app).mount('#app')
+
+    </script>
+    
+
+   
+  </body>
+</html>
